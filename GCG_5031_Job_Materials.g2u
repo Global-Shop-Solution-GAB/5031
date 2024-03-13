@@ -1,0 +1,411 @@
+Program.Sub.ScreenSU.Start
+Gui.Form..Create
+Gui.Form..Size(6690,7950)
+Gui.Form..MinX(0)
+Gui.Form..MinY(0)
+Gui.Form..Position(0,0)
+Gui.Form..BackColor(-2147483633)
+Gui.Form..MousePointer(0)
+Gui.Form..Caption("Work Order Selection")
+Gui.Form..Event(UnLoad,Form_UnLoad)
+Gui.Form.txtStartJob.Create(TextBox,"",True,735,300,0,210,435,True,0,"Arial",8,-2147483643,1)
+Gui.Form.txtStartJob.MaxLength(6)
+Gui.Form.txtStartJob.NumericOnly(2)
+Gui.Form.txtStartJob.TabStop(True)
+Gui.Form.txtStartJob.TabIndex(1)
+Gui.Form.txtStartSuf.Create(TextBox,"",True,405,300,0,1080,435,True,0,"Arial",8,-2147483643,1)
+Gui.Form.txtStartSuf.MaxLength(3)
+Gui.Form.txtStartSuf.NumericOnly(2)
+Gui.Form.txtStartSuf.TabStop(True)
+Gui.Form.txtStartSuf.TabIndex(2)
+Gui.Form.lbl1.Create(Label,"Job",True,465,255,0,210,225,True,0,"Arial",8,-2147483633,0)
+Gui.Form.lbl2.Create(Label,"Suffix",True,585,255,0,1050,225,True,0,"Arial",8,-2147483633,0)
+Gui.Form.cmdBrowseStartWO.Create(Button)
+Gui.Form.cmdBrowseStartWO.Size(510,375)
+Gui.Form.cmdBrowseStartWO.Position(1695,390)
+Gui.Form.cmdBrowseStartWO.Caption("^")
+Gui.Form.cmdBrowseStartWO.Event(Click,cmdBrowseStartWO_Click)
+Gui.Form.cmdBrowseStartWO.TabStop(True)
+Gui.Form.cmdBrowseStartWO.TabIndex(3)
+Gui.Form.txtEndJob.Create(TextBox,"",True,735,300,0,2880,435,True,0,"Arial",8,-2147483643,1)
+Gui.Form.txtEndJob.MaxLength(6)
+Gui.Form.txtEndJob.NumericOnly(2)
+Gui.Form.txtEndJob.TabStop(True)
+Gui.Form.txtEndJob.TabIndex(4)
+Gui.Form.txtEndSuf.Create(TextBox,"",True,405,300,0,3750,435,True,0,"Arial",8,-2147483643,1)
+Gui.Form.txtEndSuf.MaxLength(3)
+Gui.Form.txtEndSuf.NumericOnly(2)
+Gui.Form.txtEndSuf.TabStop(True)
+Gui.Form.txtEndSuf.TabIndex(5)
+Gui.Form.cmdBrowseEndWO.Create(Button)
+Gui.Form.cmdBrowseEndWO.Size(510,375)
+Gui.Form.cmdBrowseEndWO.Position(4350,390)
+Gui.Form.cmdBrowseEndWO.Caption("^")
+Gui.Form.cmdBrowseEndWO.Event(Click,cmdBrowseEndWO_Click)
+Gui.Form.cmdBrowseEndWO.TabStop(True)
+Gui.Form.cmdBrowseEndWO.TabIndex(6)
+Gui.Form.lbl3.Create(Label,"Suffix",True,585,255,0,3735,225,True,0,"Arial",8,-2147483633,0)
+Gui.Form.lbl4.Create(Label,"Job",True,465,255,0,2895,225,True,0,"Arial",8,-2147483633,0)
+Gui.Form.cmdAdd.Create(Button)
+Gui.Form.cmdAdd.Size(855,375)
+Gui.Form.cmdAdd.Position(5250,390)
+Gui.Form.cmdAdd.Caption("Add")
+Gui.Form.cmdAdd.Event(Click,cmdAdd_Click)
+Gui.Form.cmdAdd.TabStop(True)
+Gui.Form.cmdAdd.TabIndex(7)
+Gui.Form.chkAll.Create(CheckBox)
+Gui.Form.chkAll.Size(1560,360)
+Gui.Form.chkAll.Position(210,930)
+Gui.Form.chkAll.Caption("All WOs")
+Gui.Form.chkAll.TabStop(True)
+Gui.Form.chkAll.TabIndex(8)
+Gui.Form.gsSelect.Create(GsGridControl)
+Gui.Form.gsSelect.Size(6015,5415)
+Gui.Form.gsSelect.Position(210,1425)
+Gui.Form.gsSelect.Event(RowCellClick,gsSelect_RowCellClick)
+Gui.Form.gsSelect.TabStop(True)
+Gui.Form.gsSelect.TabIndex(10)
+Gui.Form.cmdOK.Create(Button)
+Gui.Form.cmdOK.Size(855,375)
+Gui.Form.cmdOK.Position(210,7020)
+Gui.Form.cmdOK.Caption("OK")
+Gui.Form.cmdOK.Event(Click,cmdOK_Click)
+Gui.Form.cmdOK.TabStop(True)
+Gui.Form.cmdOK.TabIndex(9)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'BN, May 23, 2018
+'Customer: Pro Mac Mfg., Ltd.
+'Target: Open Work Orders
+'Specs:
+'This program will create a custom report for WO Material Sequence and its Supply (PO and WO)
+'Columns:
+'JOB,SUFFIX,SEQ,Parent_Part,WO_Descr,Parent_Qty,Parent_Due_Date,
+'Child_Part,Qty_To_Issue,
+'SupplyWO,Supply_WO_Due_Date,Qty_Sup_WO,
+'SupplyPO,Supply_PO_Due_Date,Qty_Sup_PO
+'The report will display the nearest Supply of PO or WO 
+F.Intrinsic.Control.Try
+v.Local.sError.Declare
+
+'Create WO table for the WO selection
+F.Data.DataTable.CreateFromString("W","","StartJob*!*StartSuf*!*EndJob*!*EndSuf*!*Delete","String*!*String*!*String*!*String*!*String","","",True)
+f.Data.DataTable.DeleteRow("W")
+f.Data.DataTable.AcceptChanges("W")
+f.Intrinsic.Control.CallSub("FormatGrid")
+gui.Form..Show
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.CallSub("Form_Unload")
+F.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.Form_UnLoad.Start
+'Unload
+F.Intrinsic.Control.Try
+v.Local.sError.Declare
+
+F.Intrinsic.Control.If(V.ODBC.conx.State,=,1)
+	
+	F.ODBC.Connection!conx.close
+F.Intrinsic.Control.EndIf
+f.Intrinsic.Control.End
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.End
+F.Intrinsic.Control.EndTry
+Program.Sub.Form_UnLoad.End
+
+Program.Sub.FormatGrid.Start
+'Format the selection grid
+f.Intrinsic.Control.Try
+v.Local.sError.Declare
+
+gui.Form.gsSelect.AddGridviewFromDatatable("WGV","W")
+gui.Form.gsSelect.MainView("WGV")
+gui.Form.gsSelect.SetColumnProperty("WGV","StartJob","Caption","Start Job")
+gui.Form.gsSelect.SetColumnProperty("WGV","StartSuf","Caption","Suffix")
+gui.Form.gsSelect.SetColumnProperty("WGV","EndJob","Caption","End Job")
+gui.Form.gsSelect.SetColumnProperty("WGV","EndSuf","Caption","Suffix")
+gui.Form.gsSelect.SetColumnProperty("WGV","StartSuf","MaxWidth","50")
+gui.Form.gsSelect.SetColumnProperty("WGV","EndSuf","MaxWidth","50")
+gui.Form.gsSelect.SetColumnProperty("WGV","Delete","MaxWidth","50")
+gui.Form.gsSelect.SetColumnProperty("WGV","Delete","AllowEdit",False)
+gui.Form.gsSelect.SetColumnProperty("WGV","Delete","ReadOnly",True)
+gui.Form.gsSelect.ColumnEdit("WGV","Delete","editorbutton","Delete")
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.CallSub("Form_Unload")
+F.Intrinsic.Control.EndTry
+Program.Sub.FormatGrid.End
+
+Program.Sub.gsSelect_RowCellClick.Start
+'RowCell click to delete a selection range
+F.Intrinsic.Control.Try
+v.Local.sError.Declare
+
+F.Intrinsic.Control.If(v.Args.Column,=,"Delete")
+	f.Data.DataTable.DeleteRow("W",v.Args.RowIndex)
+	f.Data.DataTable.AcceptChanges("W")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.End
+F.Intrinsic.Control.EndTry
+Program.Sub.gsSelect_RowCellClick.End
+
+Program.Sub.cmdBrowseStartWO_Click.Start
+'Browse Start WO
+f.Intrinsic.Control.CallSub("BrowseWO","StartOrEndJob","txtStartJob","StartOrEndSuf","txtStartSuf")
+Program.Sub.cmdBrowseStartWO_Click.End
+
+Program.Sub.cmdBrowseEndWO_Click.Start
+'Browse End WO
+f.Intrinsic.Control.CallSub("BrowseWO","StartOrEndJob","txtEndJob","StartOrEndSuf","txtEndSuf")
+Program.Sub.cmdBrowseEndWO_Click.End
+
+Program.Sub.BrowseWO.Start
+'Browse WO
+F.Intrinsic.Control.Try
+v.Local..BulkDeclareString(sError,sRet)
+
+F.ODBC.Connection!conx.OpenCompanyConnection(600)
+f.Intrinsic.UI.SetBrowserHotTypeAhead(True)
+Function.Intrinsic.UI.Browser("Select a Work Order","conx","Select Job, Suffix, Part, Description, h.Customer, c.Name_Customer, Date_Due From V_JOB_HEADER h left join V_Customer_Master c on h.Customer = c.Customer where date_closed = '1900-01-01' and job not like 'ZIND%' order by job, suffix","Job*!*Suffix*!*Part*!*Description*!*Customer*!*Name*!*Due Date","1200*!*800*!*2500*!*2500*!*1200*!*3000*!*1200",Variable.Local.sRet)
+f.Intrinsic.Control.If(Variable.Local.sRet.IsCancel,=,False)
+	f.Intrinsic.String.Split(Variable.Local.sRet,"*!*",Variable.Local.sRet)
+	gui.Form.[v.Args.StartOrEndJob].Text(v.Local.sRet(0))
+	gui.Form.[v.Args.StartOrEndSuf].Text(v.Local.sRet(1))
+	f.Intrinsic.Control.If(v.Args.StartOrEndJob,=,"txtEndJob")
+		gui.Form.cmdAdd.SetFocus
+	f.Intrinsic.Control.Else
+		gui.Form.txtEndJob.Text(v.Local.sRet(0))
+		gui.Form.txtEndSuf.Text(v.Local.sRet(1))
+		gui.Form.txtEndJob.SetFocus
+	f.Intrinsic.Control.EndIf
+f.Intrinsic.Control.EndIf
+f.ODBC.Connection!conx.Close
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.CallSub("Form_Unload")
+F.Intrinsic.Control.EndTry
+Program.Sub.BrowseWO.End
+
+Program.Sub.cmdAdd_Click.Start
+F.Intrinsic.Control.Try
+v.Local..BulkDeclareString(sError,sSQL,sRet)
+
+'Validate again Start and End WO before adding to the Selection grid, just in case user does not use browser but type in incorrect WOs 
+f.Intrinsic.Control.CallSub("Validate_WO","Job",v.Screen.Form!txtStartJob.Text,"Suf",v.Screen.Form!txtStartSuf.Text)
+f.Intrinsic.Control.If(v.Args.Valid_WO.Not)
+	f.Intrinsic.UI.Msgbox("Invalid Start WO","Invalid WO")
+	gui.Form.txtStartJob.SetFocus
+	f.Intrinsic.Control.ExitSub
+f.Intrinsic.Control.EndIf
+f.Intrinsic.Control.CallSub("Validate_WO","Job",v.Screen.Form!txtEndJob.Text,"Suf",v.Screen.Form!txtEndSuf.Text)
+f.Intrinsic.Control.If(v.Args.Valid_WO.Not)
+	f.Intrinsic.UI.Msgbox("Invalid End WO","Invalid WO")
+	gui.Form.txtEndJob.SetFocus
+	f.Intrinsic.Control.ExitSub
+f.Intrinsic.Control.EndIf
+'Check Start < End
+f.Intrinsic.Control.If(v.Screen.Form!txtEndJob.Text,<,v.Screen.Form!txtStartJob.Text)
+	f.Intrinsic.UI.Msgbox("End Job must be equal or greater than Start Job","Invalid WO")
+	gui.Form.txtEndJob.SetFocus
+	f.Intrinsic.Control.ExitSub
+f.Intrinsic.Control.EndIf
+
+f.Intrinsic.String.Build("Select * from V_Job_Header where Job + Suffix between '{0}{1}' and '{2}{3}' and date_closed = '1900-01-01'",v.Screen.Form!txtStartJob.Text,v.Screen.Form!txtStartSuf.Text,v.Screen.Form!txtEndJob.Text,v.screen.Form!txtEndSuf.Text,v.Local.sSQL)
+F.ODBC.Connection!conx.OpenCompanyConnection(600)
+f.ODBC.Connection!conx.ExecuteAndReturn(v.Local.sSQL,v.Local.sRet)
+f.ODBC.Connection!conx.Close
+f.Intrinsic.Control.If(v.Local.sRet.Trim,<>,"")
+	f.Data.DataTable.AddRow("W","StartJob",v.Screen.Form!txtStartJob.Text,"StartSuf",v.Screen.Form!txtStartSuf.Text,"EndJob",v.Screen.Form!txtEndJob.Text,"EndSuf",v.Screen.Form!txtEndSuf.Text,"Delete","Delete")
+	gui.Form.txtStartJob.Text("")
+	gui.Form.txtEndJob.Text("")
+	gui.Form.txtStartSuf.Text("")
+	gui.Form.txtEndSuf.Text("")
+f.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.CallSub("Form_Unload")
+F.Intrinsic.Control.EndTry
+
+Program.Sub.cmdAdd_Click.End
+
+Program.Sub.Validate_WO.Start
+'Check if a WO exists
+F.Intrinsic.Control.Try
+v.Local..BulkDeclareString(sSQL,sRet)
+v.Local.bValid.Declare
+
+F.ODBC.Connection!conx.OpenCompanyConnection(600)
+f.Intrinsic.String.Build("Select Job from V_Job_Header where Job = '{0}' and Suffix = '{1}'",v.Args.Job,v.Args.Suf,v.Local.sSQL)
+f.ODBC.Connection!conx.ExecuteAndReturn(v.Local.sSQL,v.Local.sRet)
+f.ODBC.Connection!conx.Close
+f.Intrinsic.Control.If(v.Local.sRet,<>,"")
+	v.Local.bValid.Set(True)
+f.Intrinsic.Control.EndIf
+f.Intrinsic.Variable.AddRV("Valid_WO",v.Local.bValid)
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.CallSub("Form_Unload")
+F.Intrinsic.Control.EndTry
+Program.Sub.Validate_WO.End
+
+Program.Sub.cmdOK_Click.Start
+F.Intrinsic.Control.Try
+v.Local..BulkDeclareString(sError,sSQL,sAndClause,sDistinctSelectedWO,sDistinctRequiredChildPart)
+v.Local..BulkDeclareLong(i1,iBIRunID,iRptID,iBILogID)
+v.Local.dDateHold.Declare
+
+gui.Form..Visible(False)
+F.ODBC.Connection!conx.OpenCompanyConnection(600)
+f.Intrinsic.UI.InvokeWaitDialog("Processing...")
+'If All WOs is not check, then build the sAndClause
+f.Intrinsic.Control.If(v.Screen.Form!chkAll.Value,=,0)
+	'if the selection grid has records
+	f.Intrinsic.Control.If(v.DataTable.W.RowCount,>,0)
+		'Create a distinct records of the selection grid
+		f.Data.DataView.Create("W","WDV",22,"","")
+		f.Data.DataView.ToDataTableDistinct("W","WDV","WORanges","StartJob*!*StartSuf*!*EndJob*!*EndSuf",True)
+		
+		'Loop those distinct records of the selection grid (WORanges), each record select a range of WOs, then merge to the SelectedWOs table
+		f.Data.DataTable.Create("SelectedWOs",True)
+		f.Data.DataTable.AddColumn("SelectedWOs","WO","String")		
+		f.Intrinsic.Control.For(v.Local.i1,0,v.DataTable.WORanges.RowCount--,1)
+			f.Intrinsic.String.Build("Select Job+Suffix as WO from v_Job_Header where Job+Suffix between '{0}{1}' and '{2}{3}' and Job >= '{0}' and date_closed = '1900-01-01'",v.DataTable.WORanges(v.Local.i1).StartJob!FieldValString,v.DataTable.WORanges(v.Local.i1).StartSuf!FieldValString,v.DataTable.WORanges(v.Local.i1).EndJob!FieldValString,v.DataTable.WORanges(v.Local.i1).EndSuf!FieldValString,v.Local.sSQL)
+			f.Data.DataTable.CreateFromSQL("aRange","conx",v.Local.sSQL,True)
+			f.Data.DataTable.Merge("aRange","SelectedWOs",True,2)	
+			f.Data.DataTable.Close("aRange")
+		f.Intrinsic.Control.Next(v.Local.i1)
+		
+		'Build the And Clause (i.e "And Job + Suffix in ('','',...)")
+ 		f.Data.DataView.Create("SelectedWOs","SelectedWOs_DV",22,"","")
+		f.Data.DataView.ToDataTableDistinct("SelectedWOs","SelectedWOs_DV","DistinctSelectedWOs","WO",True)
+		f.Data.DataView.Create("DistinctSelectedWOs","DistinctSelectedWOs_DV",22,"","")
+		f.Data.DataView.ToString("DistinctSelectedWOs","DistinctSelectedWOs_DV","WO","","','",v.Local.sDistinctSelectedWO)
+		f.Intrinsic.String.Build("and (h.Job + h.Suffix) in ('{0}')",v.Local.sDistinctSelectedWO,v.Local.sAndClause)
+		
+	'if the selection grid has no records
+	f.Intrinsic.Control.Else
+		f.Intrinsic.UI.Msgbox("No Records found","WO selection")	
+		f.Intrinsic.Control.CallSub("Form_Unload")
+	f.Intrinsic.Control.EndIf		
+f.Intrinsic.Control.EndIf
+
+'Create the report table
+f.Intrinsic.String.Build("Select h.JOB,h.SUFFIX,o.SEQ,h.Part as Parent_Part,h.Description as WO_Descr,h.QTY_ORDER as Parent_Qty,h.Date_Due as Parent_Due_Date,o.PART as Child_Part,o.Locn as Child_Locn,o.HOURS_ESTIMATED -  o.HOURS_ACTUAL as Qty_To_Issue from v_Job_header h join v_Job_Operations o on h.Job = o.Job and h.Suffix = o.Suffix where h.date_closed = '1900-01-01' and LMO = 'M' and Seq < '990000' and Qty_To_Issue > 0 {0} Order by o.Job,o.Suffix,o.Seq",v.Local.sAndClause,v.Local.sSQL)
+f.Data.DataTable.CreateFromSQL("Report1","conx",v.Local.sSQL,True)
+
+f.Data.Dictionary.CreateFromSQL("Inv","conx","Select Part,sum(Qty_OnHand) from Inventory_Mstr group by Part")
+f.Data.Dictionary.SetDefaultReturn("Inv",0)
+f.Data.DataTable.AddColumn("Report1","Qty_OnHand","Float")
+f.Data.DataTable.FillFromDictionary("Report1","Inv","Child_Part","Qty_OnHand")
+
+'Get the list parts that has Qty_Onhand < Qty_To_Issue in order to get the Supply (PO or WO) of those parts
+f.Data.DataView.Create("Report1","Report1_DV",22,"Qty_Onhand < Qty_To_Issue","")
+f.Data.DataView.ToDataTableDistinct("Report1","Report1_DV","DistinctRequiredChildPart","Child_Part",True)
+f.Data.DataView.Create("DistinctRequiredChildPart","DistinctRequiredChildPart_DV",22,"","")
+f.Data.DataView.ToString("DistinctRequiredChildPart","DistinctRequiredChildPart_DV","Child_Part","","','",v.Local.sDistinctRequiredChildPart)
+
+'WO Supply
+f.Intrinsic.String.Build("Select Job + '-' +  Suffix as SupplyWO,Part,Qty_Order,date_due from V_Job_Header where Date_closed = '1900-01-01' and Part in ('{0}')",v.Local.sDistinctRequiredChildPart,v.Local.sSQL)
+f.Data.DataTable.CreateFromSQL("SupplyWOs","conx",v.Local.sSQL,True)
+
+f.Data.Dictionary.CreateFromDataTable("SupplyWOs1","SupplyWOs","Part","SupplyWO")
+f.Data.Dictionary.SetDefaultReturn("SupplyWOs1","")
+f.Data.DataTable.AddColumn("Report1","SupplyWO","String")
+f.Data.DataTable.FillFromDictionary("Report1","SupplyWOs1","Child_Part","SupplyWO")
+
+f.Data.Dictionary.CreateFromDataTable("SupplyWOs2","SupplyWOs","Part","Qty_Order")
+f.Data.Dictionary.SetDefaultReturn("SupplyWOs2",0)
+f.Data.DataTable.AddColumn("Report1","Qty_Sup_WO","Float")
+f.Data.DataTable.FillFromDictionary("Report1","SupplyWOs2","Child_Part","Qty_Sup_WO")
+
+v.Local.dDateHold.Set("1900-01-01")
+f.Data.Dictionary.CreateFromDataTable("SupplyWOs3","SupplyWOs","Part","Date_Due")
+f.Data.Dictionary.SetDefaultReturn("SupplyWOs3",v.Local.dDateHold)
+f.Data.DataTable.AddColumn("Report1","Supply_WO_Due_Date",Date)
+f.Data.DataTable.FillFromDictionary("Report1","SupplyWOs3","Child_Part","Supply_WO_Due_Date")
+
+'PO Supply
+f.Intrinsic.String.Build("Select Part, Purchase_Order + '-' +  left(Record_no,3) as PO,Date_Due_Line, (Qty_Order - Qty_Received) as  Qty_Sup_PO from v_PO_Lines where Part in ('{0}') and Qty_Order > Qty_Received and FLAG_RECV_CLOSE <> 'Y'",v.Local.sDistinctRequiredChildPart,v.Local.sSQL)
+f.Data.DataTable.CreateFromSQL("SupplyPOs","conx",v.Local.sSQL,True)
+
+f.Data.Dictionary.CreateFromDataTable("SupplyPOs1","SupplyPOs","Part","PO")
+f.Data.Dictionary.SetDefaultReturn("SupplyPOs1","")
+f.Data.DataTable.AddColumn("Report1","SupplyPO","String")
+f.Data.DataTable.FillFromDictionary("Report1","SupplyPOs1","Child_Part","SupplyPO")
+
+f.Data.Dictionary.CreateFromDataTable("SupplyPOs2","SupplyPOs","Part","Date_Due_Line")
+f.Data.Dictionary.SetDefaultReturn("SupplyPOs2",v.Local.dDateHold)
+f.Data.DataTable.AddColumn("Report1","Supply_PO_Due_Date","Date")
+f.Data.DataTable.FillFromDictionary("Report1","SupplyPOs2","Child_Part","Supply_PO_Due_Date")
+
+f.Data.Dictionary.CreateFromDataTable("SupplyPOs3","SupplyPOs","Part","Qty_Sup_PO")
+f.Data.Dictionary.SetDefaultReturn("SupplyPOs3",0)
+f.Data.DataTable.AddColumn("Report1","Qty_Sup_PO","Float")
+f.Data.DataTable.FillFromDictionary("Report1","SupplyPOs3","Child_Part","Qty_Sup_PO")
+
+'Add Terminal
+f.Data.DataTable.AddColumn("Report1","Terminal","String",v.Caller.Terminal)
+
+'Save to Custom table
+f.Intrinsic.String.Build("Delete from GCG_5031_WO_Material where Terminal = '{0}'",v.Caller.Terminal,v.Local.sSQL)
+f.ODBC.Connection!conx.Execute(v.Local.sSQL)
+f.Data.DataTable.SaveToDB("Report1","conx","GCG_5031_WO_Material","",128)
+
+'Log Report
+F.Global.BI.GetRunID(v.Local.iBIRunID)
+f.Global.BI.GetIDFromName("GCG_5031_Material.rpt",True,v.Local.iRptID)
+F.Global.BI.StartLogging(v.Local.iBIRunID,v.Local.iRptID,-1,"",v.Local.iBILogID)
+F.Global.BI.StopLogging(v.Local.iBILogID)
+
+f.Intrinsic.UI.CloseWaitDialog
+
+
+
+F.Global.BI.RunReportPreProcessor(v.Local.iBIRunID,v.Local.iBILogID,"","","",-1,True,"",-1,"",-1,"","",v.Local.iBIRunID)
+f.Intrinsic.String.Build("Delete from GCG_5031_WO_Material where Terminal = '{0}'",v.Caller.Terminal,v.Local.sSQL)
+f.ODBC.Connection!conx.Execute(v.Local.sSQL)
+f.ODBC.Connection!conx.Close
+f.Intrinsic.Control.CallSub("Form_Unload")
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.End
+F.Intrinsic.Control.EndTry
+Program.Sub.cmdOK_Click.End
+
+Program.Sub.Comments.Start
+${$0$}$$}$BAO$}$3/21/2018 8:59:51 AM$}$False
+${$3$}$0$}$$}$0$}$-1$}$$}$12:00:00 AM$}$
+'BN, May 24, 2018
+This program will create a custom report for Material Sequence and its Supply (PO and WO)
+Columns:
+JOB,SUFFIX,SEQ,Parent_Part,WO_Descr,Parent_Qty,Parent_Due_Date,
+Child_Part,Qty_To_Issue,SupplyWO,Supply_WO_Due_Date,Qty_Sup_WO,SupplyPO,Supply_PO_Due_Date,Qty_Sup_PO
+The report will display the nearest Supply of PO or WO 
+Program.Sub.Comments.End
+
+
